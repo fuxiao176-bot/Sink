@@ -51,8 +51,53 @@ export async function deleteLink(event: H3Event, slug: string): Promise<void> {
   const { cloudflare } = event.context
   const { KV } = cloudflare.env
   await KV.delete(`link:${slug}`)
-  // Also clean up round-robin counter if exists
+  // Also clean up round-robin counter and stats if exists
   await KV.delete(`link-roundrobin:${slug}`).catch(() => {})
+  await KV.delete(`link-roundrobin-stats:${slug}`).catch(() => {})
+}
+
+export interface RoundRobinStats {
+  [index: string]: number
+}
+
+/**
+ * Get click statistics for each URL index in round-robin redirect.
+ */
+export async function getRoundRobinStats(event: H3Event, slug: string): Promise<RoundRobinStats> {
+  const { cloudflare } = event.context
+  const { KV } = cloudflare.env
+  try {
+    const raw = await KV.get(`link-roundrobin-stats:${slug}`, { cacheTtl: 0 })
+    if (raw) {
+      return JSON.parse(raw) as RoundRobinStats
+    }
+  }
+  catch {
+    // ignore parse errors
+  }
+  return {}
+}
+
+/**
+ * Increment the click count for a specific URL index.
+ * Uses waitUntil to avoid blocking the redirect response.
+ */
+export function incrementRoundRobinStats(event: H3Event, slug: string, index: number): void {
+  const { cloudflare } = event.context
+  const { KV } = cloudflare.env
+  cloudflare.context.waitUntil(
+    (async () => {
+      try {
+        const raw = await KV.get(`link-roundrobin-stats:${slug}`, { cacheTtl: 0 })
+        const stats: RoundRobinStats = raw ? JSON.parse(raw) : {}
+        stats[String(index)] = (stats[String(index)] || 0) + 1
+        await KV.put(`link-roundrobin-stats:${slug}`, JSON.stringify(stats))
+      }
+      catch (err) {
+        console.error('Failed to increment round-robin stats:', err)
+      }
+    })(),
+  )
 }
 
 /**

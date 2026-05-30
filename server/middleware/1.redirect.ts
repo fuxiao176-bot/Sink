@@ -91,18 +91,21 @@ export default eventHandler(async (event) => {
 
       let targetUrl = link.url
 
-      // Round-robin multi-address redirect
-      if (link.redeemMode === 'sequential' && link.urls && link.urls.length > 0) {
+      // Round-robin multi-address redirect: auto when >1 URL
+      if (link.urls && link.urls.length > 1) {
         try {
           const index = await getRoundRobinIndex(event, slug)
           if (link.urls[index]) {
             targetUrl = link.urls[index]!
+            // Increment per-URL click stats (non-blocking via waitUntil)
+            event.context.cloudflare.context.waitUntil(
+              incrementRoundRobinStats(event, slug, index),
+            )
           }
           else {
             console.error(`Round-robin index ${index} out of bounds for urls length ${link.urls.length}, slug: ${slug}`)
           }
-          // Use waitUntil so Cloudflare Workers completes the KV write even after response is sent.
-          // Fire-and-forget (.catch) cannot be used here — Workers may terminate before the write finishes.
+          // Use waitUntil so Cloudflare Workers completes the KV write even after response is sent
           event.context.cloudflare.context.waitUntil(
             incrementRoundRobinIndex(event, slug, link.urls.length),
           )

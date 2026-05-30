@@ -285,11 +285,9 @@
       "roundrobin_urls_description": "添加多个目标地址，访客将按顺序轮流跳转",
       "roundrobin_url_placeholder": "https://example.com/page",
       "roundrobin_add_url": "添加地址",
-      "redeem_mode_label": "跳转模式",
-      "redeem_mode_description": "选择跳转方式：单一（固定地址）或顺序（轮流跳转）",
-      "redeem_mode_placeholder": "选择跳转模式",
-      "redeem_mode_single": "单一（默认地址）",
-      "redeem_mode_sequential": "顺序（轮流跳转）"
+      "roundrobin_mode_auto": "自动轮询跳转",
+      "roundrobin_mode_single_hint": "再添加一个地址即可启用轮询",
+      "roundrobin_clicks": "次点击"
     },
     "sort": {
       "newest": "最新",

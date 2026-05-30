@@ -285,11 +285,9 @@
       "roundrobin_urls_description": "新增多個目標地址，訪客將依序輪流跳轉",
       "roundrobin_url_placeholder": "https://example.com/page",
       "roundrobin_add_url": "新增地址",
-      "redeem_mode_label": "跳轉模式",
-      "redeem_mode_description": "選擇跳轉方式：單一（固定地址）或順序（輪流跳轉）",
-      "redeem_mode_placeholder": "選擇跳轉模式",
-      "redeem_mode_single": "單一（預設地址）",
-      "redeem_mode_sequential": "順序（輪流跳轉）"
+      "roundrobin_mode_auto": "自動輪詢跳轉",
+      "roundrobin_mode_single_hint": "再新增一個地址即可啟用輪詢",
+      "roundrobin_clicks": "次點擊"
     },
     "sort": {
       "newest": "最新",

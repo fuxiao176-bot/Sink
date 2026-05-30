@@ -285,11 +285,9 @@
       "roundrobin_urls_description": "Add multiple target URLs. Visitors will be redirected in order, one URL per visit.",
       "roundrobin_url_placeholder": "https://example.com/page",
       "roundrobin_add_url": "Add URL",
-      "redeem_mode_label": "Redirect Mode",
-      "redeem_mode_description": "Choose how visitors are redirected: single (always same URL) or sequential (round-robin through all URLs).",
-      "redeem_mode_placeholder": "Select redirect mode",
-      "redeem_mode_single": "Single (default URL)",
-      "redeem_mode_sequential": "Sequential (round-robin)"
+      "roundrobin_mode_auto": "Auto Round-Robin",
+      "roundrobin_mode_single_hint": "Add another URL to enable round-robin",
+      "roundrobin_clicks": "clicks"
     },
     "sort": {
       "newest": "Mais recentes primeiro",

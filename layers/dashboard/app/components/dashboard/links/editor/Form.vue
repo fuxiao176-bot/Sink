@@ -54,7 +54,6 @@ const form = useForm({
     unsafe: props.link.unsafe ?? false,
     geo: props.link.geo ? Object.entries(props.link.geo).map(([country, url]) => ({ country, url })) : [],
     urls: props.link.urls ?? [],
-    redeemMode: props.link.redeemMode ?? 'single',
   } satisfies LinkFormData,
   onSubmit: async ({ value }) => {
     try {
@@ -84,7 +83,6 @@ const form = useForm({
         unsafe: props.isEdit ? value.unsafe : value.unsafe || undefined,
         geo: Object.keys(geoRecord).length > 0 ? geoRecord : undefined,
         urls: value.urls?.filter(u => u.trim())?.length > 0 ? value.urls.filter(u => u.trim()) : undefined,
-        redeemMode: value.redeemMode ?? 'single',
       }
       const { link: newLink } = await useAPI<{ link: Link }>(
         props.isEdit ? '/api/link/edit' : '/api/link/create',
@@ -155,7 +153,23 @@ async function aiSlug() {
 
 const currentSlug = form.useStore(state => state.values.slug || '')
 const currentUrl = form.useStore(state => state.values.url || '')
-const currentRedeemMode = form.useStore(state => state.values.redeemMode || 'single')
+const currentUrls = form.useStore(state => state.values.urls || [])
+
+// Load per-URL click stats in edit mode
+const clickStats = ref<Record<string, number>>({})
+const statsLoading = ref(false)
+if (props.isEdit && props.link.slug && props.link.urls && props.link.urls.length > 1) {
+  statsLoading.value = true
+  useAPI<{ stats: Record<string, number> }>('/api/link/rr-stats', {
+    query: { slug: props.link.slug },
+  }).then((result) => {
+    clickStats.value = result.stats || {}
+  }).catch(() => {
+    // stats are optional, silently ignore
+  }).finally(() => {
+    statsLoading.value = false
+  })
+}
 
 const { previewMode } = useRuntimeConfig().public
 
@@ -220,64 +234,61 @@ defineExpose({ randomSlug })
       </form.Field>
 
       <!-- Round-Robin Multi-URL -->
-      <form.Field v-slot="{ field }" name="redeemMode">
-        <Field>
-          <FieldLabel>{{ $t('links.form.redeem_mode_label') }}</FieldLabel>
-          <FieldDescription class="text-xs">
-            {{ $t('links.form.redeem_mode_description') }}
-          </FieldDescription>
-          <Select :model-value="field.state.value" @update:model-value="field.handleChange($event)">
-            <SelectTrigger :id="field.name" class="w-full max-w-48">
-              <SelectValue :placeholder="$t('links.form.redeem_mode_placeholder')" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="single">
-                {{ $t('links.form.redeem_mode_single') }}
-              </SelectItem>
-              <SelectItem value="sequential">
-                {{ $t('links.form.redeem_mode_sequential') }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-      </form.Field>
-
       <form.Field v-slot="{ field }" name="urls">
-        <template v-if="currentRedeemMode === 'sequential'">
-          <div class="rounded-md border border-dashed p-3">
-            <p class="mb-2 text-xs font-medium text-muted-foreground">
+        <div class="rounded-md border border-dashed p-3">
+          <div class="mb-2 flex items-center justify-between">
+            <p class="text-xs font-medium text-muted-foreground">
               {{ $t('links.form.roundrobin_urls_label') }}
               <span class="font-normal text-muted-foreground/60">— {{ $t('links.form.roundrobin_urls_description') }}</span>
             </p>
-            <div class="space-y-1.5">
-              <div
-                v-for="(urlItem, idx) of field.state.value" :key="idx"
-                class="flex items-center gap-1.5"
-              >
-                <span class="w-4 shrink-0 text-xs text-muted-foreground">{{ idx + 1 }}</span>
-                <Input
-                  :model-value="urlItem"
-                  :placeholder="$t('links.form.roundrobin_url_placeholder')"
-                  autocomplete="url"
-                  class="h-8 flex-1 text-sm"
-                  @input="field.handleChange(field.state.value.map((u: string, i: number) => i === idx ? ($event.target as any).value : u))"
-                />
-                <Button
-                  type="button" variant="ghost" size="icon" class="
-                    h-8 w-8 shrink-0
-                  " @click="field.handleChange(field.state.value.filter((_: string, i: number) => i !== idx))"
-                >
-                  <Trash2 class="h-3.5 w-3.5 text-muted-foreground" />
-                </Button>
-              </div>
-            </div>
-            <Button
-              type="button" variant="ghost" size="sm" class="mt-2 h-7 text-xs" @click="field.handleChange([...field.state.value, ''])"
+            <span
+              v-if="field.state.value.filter((u: string) => u.trim()).length >= 2"
+              class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
             >
-              <Plus class="mr-1 h-3.5 w-3.5" /> {{ $t('links.form.roundrobin_add_url') }}
-            </Button>
+              <Shuffle class="h-3 w-3" />
+              {{ $t('links.form.roundrobin_mode_auto') }}
+            </span>
+            <span
+              v-else-if="field.state.value.filter((u: string) => u.trim()).length === 1"
+              class="text-xs text-muted-foreground"
+            >
+              {{ $t('links.form.roundrobin_mode_single_hint') }}
+            </span>
           </div>
-        </template>
+          <div class="space-y-1.5">
+            <div
+              v-for="(urlItem, idx) of field.state.value" :key="idx"
+              class="flex items-center gap-1.5"
+            >
+              <span class="w-4 shrink-0 text-xs text-muted-foreground">{{ idx + 1 }}</span>
+              <Input
+                :model-value="urlItem"
+                :placeholder="$t('links.form.roundrobin_url_placeholder')"
+                autocomplete="url"
+                class="h-8 flex-1 text-sm"
+                @input="field.handleChange(field.state.value.map((u: string, i: number) => i === idx ? ($event.target as any).value : u))"
+              />
+              <span
+                v-if="isEdit && clickStats[String(idx)] !== undefined"
+                class="w-14 shrink-0 text-right text-xs text-muted-foreground"
+              >
+                {{ clickStats[String(idx)] }} {{ $t('links.form.roundrobin_clicks') }}
+              </span>
+              <Button
+                type="button" variant="ghost" size="icon" class="
+                  h-8 w-8 shrink-0
+                " @click="field.handleChange(field.state.value.filter((_: string, i: number) => i !== idx))"
+              >
+                <Trash2 class="h-3.5 w-3.5 text-muted-foreground" />
+              </Button>
+            </div>
+          </div>
+          <Button
+            type="button" variant="ghost" size="sm" class="mt-2 h-7 text-xs" @click="field.handleChange([...field.state.value, ''])"
+          >
+            <Plus class="mr-1 h-3.5 w-3.5" /> {{ $t('links.form.roundrobin_add_url') }}
+          </Button>
+        </div>
       </form.Field>
 
       <form.Field
