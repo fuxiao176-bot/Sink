@@ -101,10 +101,11 @@ export default eventHandler(async (event) => {
           else {
             console.error(`Round-robin index ${index} out of bounds for urls length ${link.urls.length}, slug: ${slug}`)
           }
-          // Increment counter for next visitor (non-blocking, best-effort)
-          incrementRoundRobinIndex(event, slug, link.urls.length).catch((err) => {
-            console.error('Failed to update round-robin counter:', err)
-          })
+          // Use waitUntil so Cloudflare Workers completes the KV write even after response is sent.
+          // Fire-and-forget (.catch) cannot be used here — Workers may terminate before the write finishes.
+          event.context.cloudflare.context.waitUntil(
+            incrementRoundRobinIndex(event, slug, link.urls.length),
+          )
         }
         catch (err) {
           console.error('Round-robin redirect failed, falling back to default URL:', err)
