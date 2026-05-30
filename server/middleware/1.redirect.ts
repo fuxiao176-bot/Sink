@@ -93,12 +93,22 @@ export default eventHandler(async (event) => {
 
       // Round-robin multi-address redirect
       if (link.redeemMode === 'sequential' && link.urls && link.urls.length > 0) {
-        const index = await getRoundRobinIndex(event, slug)
-        targetUrl = link.urls[index]!
-        // Increment counter for next visitor (non-blocking, best-effort)
-        incrementRoundRobinIndex(event, slug, link.urls.length).catch((err) => {
-          console.error('Failed to update round-robin counter:', err)
-        })
+        try {
+          const index = await getRoundRobinIndex(event, slug)
+          if (link.urls[index]) {
+            targetUrl = link.urls[index]!
+          }
+          else {
+            console.error(`Round-robin index ${index} out of bounds for urls length ${link.urls.length}, slug: ${slug}`)
+          }
+          // Increment counter for next visitor (non-blocking, best-effort)
+          incrementRoundRobinIndex(event, slug, link.urls.length).catch((err) => {
+            console.error('Failed to update round-robin counter:', err)
+          })
+        }
+        catch (err) {
+          console.error('Round-robin redirect failed, falling back to default URL:', err)
+        }
       }
 
       const country = event.context.cloudflare?.request?.cf?.country
