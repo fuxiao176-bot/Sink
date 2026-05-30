@@ -279,7 +279,17 @@
       "utm_apply": "套用",
       "utm_clear": "清除",
       "utm_invalid_url": "請輸入有效的 URL 以預覽並套用 UTM 參數。",
-      "ai_og_generate": "生成 AI OpenGraph"
+      "ai_og_generate": "生成 AI OpenGraph",
+      "roundrobin_title": "輪詢跳轉",
+      "roundrobin_urls_label": "目標地址",
+      "roundrobin_urls_description": "新增多個目標地址，訪客將依序輪流跳轉",
+      "roundrobin_url_placeholder": "https://example.com/page",
+      "roundrobin_add_url": "新增地址",
+      "redeem_mode_label": "跳轉模式",
+      "redeem_mode_description": "選擇跳轉方式：單一（固定地址）或順序（輪流跳轉）",
+      "redeem_mode_placeholder": "選擇跳轉模式",
+      "redeem_mode_single": "單一（預設地址）",
+      "redeem_mode_sequential": "順序（輪流跳轉）"
     },
     "sort": {
       "newest": "最新",

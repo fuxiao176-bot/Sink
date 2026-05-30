@@ -51,6 +51,31 @@ export async function deleteLink(event: H3Event, slug: string): Promise<void> {
   const { cloudflare } = event.context
   const { KV } = cloudflare.env
   await KV.delete(`link:${slug}`)
+  // Also clean up round-robin counter if exists
+  await KV.delete(`link-roundrobin:${slug}`).catch(() => {})
+}
+
+/**
+ * Get the current round-robin index for a link's multi-URL rotation.
+ * Returns 0 if no counter exists yet.
+ */
+export async function getRoundRobinIndex(event: H3Event, slug: string): Promise<number> {
+  const { cloudflare } = event.context
+  const { KV } = cloudflare.env
+  const value = await KV.get(`link-roundrobin:${slug}`, { cacheTtl: 0 })
+  return value ? Number.parseInt(value, 10) || 0 : 0
+}
+
+/**
+ * Increment the round-robin counter for a link, wrapping to 0 when exceeding max.
+ * Uses cacheTtl: 0 to avoid stale counter reads across edge locations.
+ */
+export async function incrementRoundRobinIndex(event: H3Event, slug: string, max: number): Promise<void> {
+  const { cloudflare } = event.context
+  const { KV } = cloudflare.env
+  const current = await getRoundRobinIndex(event, slug)
+  const next = (current + 1) % max
+  await KV.put(`link-roundrobin:${slug}`, String(next))
 }
 
 export async function linkExists(event: H3Event, slug: string): Promise<boolean> {

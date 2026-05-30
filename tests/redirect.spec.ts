@@ -158,3 +158,59 @@ describe.sequential('password protected redirect', () => {
     expect(correctPasswordResponse.headers.get('location')).toBe(payload.url)
   })
 })
+
+describe.sequential('round-robin multi-address redirect', () => {
+  it('redirects to URLs in round-robin order', async () => {
+    const slug = `rr-seq-${crypto.randomUUID()}`
+    const urlA = 'https://example.com/a'
+    const urlB = 'https://example.com/b'
+    const urlC = 'https://example.com/c'
+
+    const createResponse = await postJson('/api/link/create', {
+      url: urlA,
+      slug,
+      urls: [urlA, urlB, urlC],
+      redeemMode: 'sequential',
+    })
+    expect(createResponse.status).toBe(201)
+    createdSlugs.push(slug)
+
+    // First visit gets urlA (index 0)
+    const resp1 = await fetch(`/${slug}`, { redirect: 'manual' })
+    expect(resp1.status).toBe(301)
+    expect(resp1.headers.get('Location')).toBe(urlA)
+
+    // Second visit gets urlB (index 1)
+    const resp2 = await fetch(`/${slug}`, { redirect: 'manual' })
+    expect(resp2.status).toBe(301)
+    expect(resp2.headers.get('Location')).toBe(urlB)
+
+    // Third visit gets urlC (index 2)
+    const resp3 = await fetch(`/${slug}`, { redirect: 'manual' })
+    expect(resp3.status).toBe(301)
+    expect(resp3.headers.get('Location')).toBe(urlC)
+
+    // Fourth visit wraps back to urlA (index 0)
+    const resp4 = await fetch(`/${slug}`, { redirect: 'manual' })
+    expect(resp4.status).toBe(301)
+    expect(resp4.headers.get('Location')).toBe(urlA)
+  })
+
+  it('falls back to url when redeemMode is not sequential', async () => {
+    const slug = `rr-single-${crypto.randomUUID()}`
+    const defaultUrl = 'https://example.com/default'
+
+    const createResponse = await postJson('/api/link/create', {
+      url: defaultUrl,
+      slug,
+      urls: ['https://example.com/alt1', 'https://example.com/alt2'],
+      redeemMode: 'single',
+    })
+    expect(createResponse.status).toBe(201)
+    createdSlugs.push(slug)
+
+    const resp = await fetch(`/${slug}`, { redirect: 'manual' })
+    expect(resp.status).toBe(301)
+    expect(resp.headers.get('Location')).toBe(defaultUrl)
+  })
+})

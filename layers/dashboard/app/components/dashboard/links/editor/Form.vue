@@ -53,6 +53,8 @@ const form = useForm({
     password: props.link.password ?? '',
     unsafe: props.link.unsafe ?? false,
     geo: props.link.geo ? Object.entries(props.link.geo).map(([country, url]) => ({ country, url })) : [],
+    urls: props.link.urls ?? [],
+    redeemMode: props.link.redeemMode ?? 'single',
   } satisfies LinkFormData,
   onSubmit: async ({ value }) => {
     try {
@@ -81,6 +83,8 @@ const form = useForm({
         password: getPasswordSubmitValue(value.password),
         unsafe: props.isEdit ? value.unsafe : value.unsafe || undefined,
         geo: Object.keys(geoRecord).length > 0 ? geoRecord : undefined,
+        urls: value.urls?.filter(u => u.trim())?.length > 0 ? value.urls.filter(u => u.trim()) : undefined,
+        redeemMode: value.redeemMode ?? 'single',
       }
       const { link: newLink } = await useAPI<{ link: Link }>(
         props.isEdit ? '/api/link/edit' : '/api/link/create',
@@ -291,6 +295,7 @@ defineExpose({ randomSlug })
       :get-aria-invalid="getAriaInvalid"
       :format-errors="formatErrors"
       :current-slug="currentSlug"
+      :is-edit="isEdit"
     />
   </form>
 

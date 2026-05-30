@@ -90,6 +90,17 @@ export default eventHandler(async (event) => {
       const buildTarget = (url: string) => shouldRedirectWithQuery ? withQuery(url, query) : url
 
       let targetUrl = link.url
+
+      // Round-robin multi-address redirect
+      if (link.redeemMode === 'sequential' && link.urls && link.urls.length > 0) {
+        const index = await getRoundRobinIndex(event, slug)
+        targetUrl = link.urls[index]!
+        // Increment counter for next visitor (non-blocking, best-effort)
+        incrementRoundRobinIndex(event, slug, link.urls.length).catch((err) => {
+          console.error('Failed to update round-robin counter:', err)
+        })
+      }
+
       const country = event.context.cloudflare?.request?.cf?.country
       if (country && typeof country === 'string' && link.geo?.[country.toUpperCase()]) {
         targetUrl = link.geo[country.toUpperCase()]!

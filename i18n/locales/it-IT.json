@@ -279,7 +279,17 @@
       "utm_apply": "Applica",
       "utm_clear": "Cancella",
       "utm_invalid_url": "Inserisci un URL valido per visualizzare l'anteprima e applicare i parametri UTM.",
-      "ai_og_generate": "Genera OpenGraph AI"
+      "ai_og_generate": "Genera OpenGraph AI",
+      "roundrobin_title": "Round-Robin Redirect",
+      "roundrobin_urls_label": "Target URLs",
+      "roundrobin_urls_description": "Add multiple target URLs. Visitors will be redirected in order, one URL per visit.",
+      "roundrobin_url_placeholder": "https://example.com/page",
+      "roundrobin_add_url": "Add URL",
+      "redeem_mode_label": "Redirect Mode",
+      "redeem_mode_description": "Choose how visitors are redirected: single (always same URL) or sequential (round-robin through all URLs).",
+      "redeem_mode_placeholder": "Select redirect mode",
+      "redeem_mode_single": "Single (default URL)",
+      "redeem_mode_sequential": "Sequential (round-robin)"
     },
     "sort": {
       "newest": "Più Recenti",

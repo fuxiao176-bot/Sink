@@ -10,6 +10,8 @@ export type LinkUpdateType = 'create' | 'edit' | 'delete'
 type LinkFormFields = Omit<Link, 'id' | 'createdAt' | 'updatedAt' | 'expiration' | 'geo'> & {
   expiration: DateValue | undefined
   geo: { country: string, url: string }[]
+  urls: string[]
+  redeemMode: 'single' | 'sequential'
 }
 
 export type LinkFormData = {

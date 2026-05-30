@@ -279,7 +279,17 @@
       "utm_apply": "应用",
       "utm_clear": "清空",
       "utm_invalid_url": "请输入有效 URL 以预览并应用 UTM 参数。",
-      "ai_og_generate": "生成 AI OpenGraph"
+      "ai_og_generate": "生成 AI OpenGraph",
+      "roundrobin_title": "轮询跳转",
+      "roundrobin_urls_label": "目标地址",
+      "roundrobin_urls_description": "添加多个目标地址，访客将按顺序轮流跳转",
+      "roundrobin_url_placeholder": "https://example.com/page",
+      "roundrobin_add_url": "添加地址",
+      "redeem_mode_label": "跳转模式",
+      "redeem_mode_description": "选择跳转方式：单一（固定地址）或顺序（轮流跳转）",
+      "redeem_mode_placeholder": "选择跳转模式",
+      "redeem_mode_single": "单一（默认地址）",
+      "redeem_mode_sequential": "顺序（轮流跳转）"
     },
     "sort": {
       "newest": "最新",

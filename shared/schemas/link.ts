@@ -48,6 +48,8 @@ export const LinkSchema = z.object({
   password: LinkPasswordSchema.optional(),
   unsafe: z.boolean().optional(),
   geo: GeoSchema.optional(),
+  urls: z.array(z.string().trim().url().max(2048)).min(1).max(100).optional(),
+  redeemMode: z.enum(['single', 'sequential']).default('single').optional(),
 })
 
 export type Link = z.infer<typeof LinkSchema>
