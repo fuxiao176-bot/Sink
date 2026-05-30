@@ -3,7 +3,7 @@ import type { Link, LinkFormData } from '@/types'
 import { LinkSchema, nanoid } from '#shared/schemas/link'
 import { isMaskedLinkPassword } from '#shared/utils/link-password'
 import { useForm } from '@tanstack/vue-form'
-import { Shuffle, Sparkles } from 'lucide-vue-next'
+import { Plus, Shuffle, Sparkles, Trash2 } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { z } from 'zod'
 
@@ -155,6 +155,7 @@ async function aiSlug() {
 
 const currentSlug = form.useStore(state => state.values.slug || '')
 const currentUrl = form.useStore(state => state.values.url || '')
+const currentRedeemMode = form.useStore(state => state.values.redeemMode || 'single')
 
 const { previewMode } = useRuntimeConfig().public
 
@@ -216,6 +217,67 @@ defineExpose({ randomSlug })
             :errors="formatErrors(field.state.meta.errors)"
           />
         </Field>
+      </form.Field>
+
+      <!-- Round-Robin Multi-URL -->
+      <form.Field v-slot="{ field }" name="redeemMode">
+        <Field>
+          <FieldLabel>{{ $t('links.form.redeem_mode_label') }}</FieldLabel>
+          <FieldDescription class="text-xs">
+            {{ $t('links.form.redeem_mode_description') }}
+          </FieldDescription>
+          <Select :model-value="field.state.value" @update:model-value="field.handleChange($event)">
+            <SelectTrigger :id="field.name" class="w-full max-w-48">
+              <SelectValue :placeholder="$t('links.form.redeem_mode_placeholder')" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="single">
+                {{ $t('links.form.redeem_mode_single') }}
+              </SelectItem>
+              <SelectItem value="sequential">
+                {{ $t('links.form.redeem_mode_sequential') }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+      </form.Field>
+
+      <form.Field v-slot="{ field }" name="urls">
+        <template v-if="currentRedeemMode === 'sequential'">
+          <div class="rounded-md border border-dashed p-3">
+            <p class="mb-2 text-xs font-medium text-muted-foreground">
+              {{ $t('links.form.roundrobin_urls_label') }}
+              <span class="font-normal text-muted-foreground/60">— {{ $t('links.form.roundrobin_urls_description') }}</span>
+            </p>
+            <div class="space-y-1.5">
+              <div
+                v-for="(urlItem, idx) of field.state.value" :key="idx"
+                class="flex items-center gap-1.5"
+              >
+                <span class="w-4 shrink-0 text-xs text-muted-foreground">{{ idx + 1 }}</span>
+                <Input
+                  :model-value="urlItem"
+                  :placeholder="$t('links.form.roundrobin_url_placeholder')"
+                  autocomplete="url"
+                  class="h-8 flex-1 text-sm"
+                  @input="field.handleChange(field.state.value.map((u: string, i: number) => i === idx ? ($event.target as any).value : u))"
+                />
+                <Button
+                  type="button" variant="ghost" size="icon" class="
+                    h-8 w-8 shrink-0
+                  " @click="field.handleChange(field.state.value.filter((_: string, i: number) => i !== idx))"
+                >
+                  <Trash2 class="h-3.5 w-3.5 text-muted-foreground" />
+                </Button>
+              </div>
+            </div>
+            <Button
+              type="button" variant="ghost" size="sm" class="mt-2 h-7 text-xs" @click="field.handleChange([...field.state.value, ''])"
+            >
+              <Plus class="mr-1 h-3.5 w-3.5" /> {{ $t('links.form.roundrobin_add_url') }}
+            </Button>
+          </div>
+        </template>
       </form.Field>
 
       <form.Field

@@ -45,7 +45,7 @@ function formatPasswordDisplay(password: string) {
 }
 
 // Compute default open items based on existing values
-  const defaultOpenItems = computed(() => {
+const defaultOpenItems = computed(() => {
   const items: string[] = []
   if (props.form.getFieldValue('title') || props.form.getFieldValue('description') || props.form.getFieldValue('image')) {
     items.push('og')
@@ -59,10 +59,6 @@ function formatPasswordDisplay(password: string) {
   const geoVal = props.form.getFieldValue('geo')
   if (Array.isArray(geoVal) && geoVal.length > 0) {
     items.push('geo')
-  }
-  const urlsVal = props.form.getFieldValue('urls')
-  if (Array.isArray(urlsVal) && urlsVal.length > 0 && urlsVal.some(u => u && u.trim())) {
-    items.push('roundrobin')
   }
   return items
 })
@@ -307,63 +303,6 @@ async function aiOg() {
               :aria-invalid="getAriaInvalid(field)"
               :errors="formatErrors(field.state.meta.errors)"
             />
-          </props.form.Field>
-        </FieldGroup>
-      </AccordionContent>
-    </AccordionItem>
-
-    <AccordionItem value="roundrobin">
-      <AccordionTrigger :class="accordionTriggerClass">
-        {{ $t('links.form.roundrobin_title') }}
-      </AccordionTrigger>
-      <AccordionContent class="px-1">
-        <FieldGroup>
-          <props.form.Field v-slot="{ field }" name="redeemMode">
-            <Field>
-              <FieldLabel :for="field.name">
-                {{ $t('links.form.redeem_mode_label') }}
-              </FieldLabel>
-              <FieldDescription class="text-xs">
-                {{ $t('links.form.redeem_mode_description') }}
-              </FieldDescription>
-              <Select :model-value="field.state.value" @update:model-value="field.handleChange($event)">
-                <SelectTrigger :id="field.name" class="w-full">
-                  <SelectValue :placeholder="$t('links.form.redeem_mode_placeholder')" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="single">{{ $t('links.form.redeem_mode_single') }}</SelectItem>
-                  <SelectItem value="sequential">{{ $t('links.form.redeem_mode_sequential') }}</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-          </props.form.Field>
-
-          <props.form.Field v-slot="{ field }" name="urls">
-            <div class="space-y-2">
-              <FieldLabel>{{ $t('links.form.roundrobin_urls_label') }}</FieldLabel>
-              <FieldDescription class="text-xs">
-                {{ $t('links.form.roundrobin_urls_description') }}
-              </FieldDescription>
-              <div
-                v-for="(urlItem, idx) of field.state.value" :key="idx"
-                class="flex flex-col gap-2 sm:flex-row sm:items-start"
-              >
-                <Field class="flex-1">
-                  <Input
-                    :model-value="urlItem"
-                    :placeholder="$t('links.form.roundrobin_url_placeholder')"
-                    autocomplete="url"
-                    @input="field.handleChange(field.state.value.map((u, i) => i === idx ? ($event.target as any).value : u))"
-                  />
-                </Field>
-                <Button type="button" variant="ghost" size="icon" @click="field.handleChange(field.state.value.filter((_, i) => i !== idx))">
-                  <Trash2 class="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </div>
-              <Button type="button" variant="outline" size="sm" @click="field.handleChange([...field.state.value, ''])">
-                <Plus class="mr-2 h-4 w-4" /> {{ $t('links.form.roundrobin_add_url') }}
-              </Button>
-            </div>
           </props.form.Field>
         </FieldGroup>
       </AccordionContent>
